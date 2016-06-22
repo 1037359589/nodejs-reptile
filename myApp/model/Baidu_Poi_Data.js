@@ -7,7 +7,7 @@ autoIncrement.initialize(mongoose.connection);
 var baiduPoiSchema=new mongoose.Schema({
     pid:{
         type:Number,
-        index:true,
+        index:true
     },
     uid:{
         type:String,
@@ -15,7 +15,8 @@ var baiduPoiSchema=new mongoose.Schema({
     },
     name:{
         type:String,
-        unique:true
+        index:true,
+        //unique:true
     },
     location:{
         type:String,

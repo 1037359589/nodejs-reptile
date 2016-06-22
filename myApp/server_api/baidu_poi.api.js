@@ -3,6 +3,7 @@
  */
 var mongoose=require("mongoose");
 var BaiduPoi=mongoose.model("Baidu_poi");
+var BaiduPoiDetail=mongoose.model("Baidu_poi_detail");
 
 var baidu_poi={
     model:"",
@@ -11,18 +12,37 @@ var baidu_poi={
     init:(data)=>{
         baidu_poi.insert(data);
     },
+    removeAll:()=>{
+        BaiduPoi.remove(function(err, p){
+            if(err){
+                throw err;
+            } else{
+                console.log('已经全部删除:' + p);
+            }
+        });
+    },
+    detailRemoveAll:()=>{
+        BaiduPoiDetail.remove(function(err, p){
+            if(err){
+                throw err;
+            } else{
+                console.log('已经全部删除:' + p);
+            }
+        });
+    },
     getInstance:(data)=>{
         this.model = new BaiduPoi(data||"");
         return baidu_poi;
     },
-    insert:(data)=>{
-        baidu_poi.filterIsSetData(data);
+    insert:(data,req, res, next)=>{
+        //baidu_poi.filterIsSetData(data,req, res, next);
+        baidu_poi.insertCanData(data,req, res, next);
         return baidu_poi;
     },
     /*
     * 过滤已存在数据
     * */
-    filterIsSetData:function(data){
+    filterIsSetData:function(data,req, res, next){
         var bp=baidu_poi;
         BaiduPoi.find(function(err,doc){
             if(err){
@@ -41,26 +61,24 @@ var baidu_poi={
                             console.log(err);
                             return ;
                         }
-                        console.log(doc,888);
                         if(doc.length==0){
                             bp.canInsertData.push(v);
                         }
                         bp.canInsertData.remove(undefined);
-                        console.log(bp.canInsertData,999);
                     });
                 });
-                var t=setInterval(function(){
+                //var t=setInterval(function(){
                     if(bp.canInsertData.length>0){
-                        bp.insertCanData(bp.canInsertData,t);
+                        bp.insertCanData(bp.canInsertData,req, res, next);
                     }else{
-                        clearInterval(t);
+                        //clearInterval(t);
                         return;
                     }
-                },1000);
+                //},1000);
             }
         });
     },
-    insertCanData:function(data,t){
+    insertCanData:function(data,req, res, next){
         BaiduPoi.create(data,function(err,doc){
             if(err){
                 console.log(err);
@@ -68,22 +86,56 @@ var baidu_poi={
             }
             baidu_poi.insertReturnDoc=doc;
             console.log(baidu_poi.insertReturnDoc);
-            if(t!==undefined){
-                clearInterval(t);
+        });
+    },
+    insertCanDetailData:function(data,req, res, next,fn){
+        BaiduPoiDetail.create(data,function(err,doc){
+            if(err){
+                console.log(err);
+                return ;
+            }
+            console.log('insert');
+            //baidu_poi.insertReturnDoc=doc;
+            if(fn instanceof Function){
+                fn(doc);
             }
         });
+    },
+    findPoiListLimit:(num,page,fn)=>{
+        BaiduPoi.count({}, function(err, count) {
+            BaiduPoi.find({}, 'pid name uid detail_info', {skip: (page - 1) * num, limit: num}, function (err, doc) {
+                if (err) {
+                    console.log(err);
+                    return;
+                }
+                if (fn instanceof Function) {
+                    fn(doc);
+                }
+            });
+        })
+    },
+    getPoiCount:function(fn){
+        BaiduPoi.count({}, function(err, count) {
+            if (err) {
+                console.log(err);
+                return;
+            }
+            if (fn instanceof Function) {
+                fn(count);
+            }
+        })
     }
 };
-Array.prototype.indexOf = function(val) {
-    for (var i = 0; i < this.length; i++) {
-        if (this[i] == val) return i;
-    }
-    return -1;
-};
-Array.prototype.remove = function(val) {
-    var index = this.indexOf(val);
-    if (index > -1) {
-        this.splice(index, 1);
-    }
-};
+//Array.prototype.indexOf = function(val) {
+//    for (var i = 0; i < this.length; i++) {
+//        if (this[i] == val) return i;
+//    }
+//    return -1;
+//};
+//Array.prototype.remove = function(val) {
+//    var index = this.indexOf(val);
+//    if (index > -1) {
+//        this.splice(index, 1);
+//    }
+//};
 module.exports=baidu_poi;

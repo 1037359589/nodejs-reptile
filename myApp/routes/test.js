@@ -48,11 +48,10 @@ router.get('/', function(req, res, next) {
     })
 });
 
-var mapUrl ='http://api.map.baidu.com/place/v2/search?query='+encodeURIComponent('银行')+
-    '&page_size=20&page_num=0&scope=2&output=json&region='+encodeURIComponent('盐城')+
+var mapUrl ='http://api.map.baidu.com/place/v2/SearchInBound?query='+encodeURIComponent('银行')+
+    '&page_size=20&page_num=19&scope=2&output=json&region='+encodeURIComponent('盐城')+
     '&city_limit=true&&output=json&ak=9L2GOOak2gq437N2jPsXUekcd0KHTK3Z' ;
 router.get('/map', function(req, res, next) {
-    console.log(12312);
     superagent.get(mapUrl)
         .end(function (err, response) {
             if(err){
@@ -60,8 +59,24 @@ router.get('/map', function(req, res, next) {
                 return;
             }
             var s=JSON.parse(response.text);
-            console.log(s);
+            //console.log(s);
             res.send("<pre>"+response.text+"</pre>");
+            //res.send(response.text);
         });
+});
+
+router.get("/baidu", function(req, res, next) {
+    var baidu_poi = require('./baidu_poi');
+    baidu_poi(req, res, next);
+});
+router.get("/remove", function(req, res, next) {
+    var baidu_poi = require('../server_api/baidu_poi.api');
+    baidu_poi.removeAll();
+});
+router.get("/find", function(req, res, next) {
+    var baidu_poi = require('./baidu_poi');
+    baidu_poi.handleDetailStore(req,res,next);
+
+
 });
 module.exports = router;

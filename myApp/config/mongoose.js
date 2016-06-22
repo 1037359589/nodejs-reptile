@@ -6,5 +6,6 @@ var config=require("./config.js");
 module.exports=function(){
     var db=mongoose.connect(config.mongodb);
     require("../model/Baidu_Poi_Data.js");
+    require("../model/Baidu_Poi_Detail_Data.js");
     return db;
 };

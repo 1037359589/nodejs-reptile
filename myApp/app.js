@@ -10,10 +10,10 @@ var users = require('./routes/users');
 var test = require('./routes/test');
 var app = express();
 var db=mongoose();
-
+//console.log(db.connections[0].models.IdentityCounter.db);
 //执行接口
-var baidu_poi = require('./routes/baidu_poi');
-baidu_poi();
+//var baidu_poi = require('./routes/baidu_poi');
+//baidu_poi();
 
 // view engine setup
 app.set('views', path.join(__dirname, 'views'));
