@@ -45,10 +45,10 @@ var baiduPoiSchema=new mongoose.Schema({
     }
 });
 baiduPoiSchema.post('save',function(next){
-    console.log('已经执行了save操作!!');
+    //console.log('已经执行了save操作!!');
 });
 baiduPoiSchema.pre('save',function(next){
-    console.log('即将执行save操作!!');
+    //console.log('即将执行save操作!!');
     next();
 });
 baiduPoiSchema.plugin(autoIncrement.plugin, {

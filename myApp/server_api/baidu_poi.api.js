@@ -85,7 +85,7 @@ var baidu_poi={
                 return ;
             }
             baidu_poi.insertReturnDoc=doc;
-            console.log(baidu_poi.insertReturnDoc);
+            //console.log(baidu_poi.insertReturnDoc);
         });
     },
     insertCanDetailData:function(data,req, res, next,fn){
@@ -103,7 +103,7 @@ var baidu_poi={
     },
     findPoiListLimit:(num,page,fn)=>{
         BaiduPoi.count({}, function(err, count) {
-            BaiduPoi.find({}, 'pid name uid detail_info', {skip: (page - 1) * num, limit: num}, function (err, doc) {
+            BaiduPoi.find({}, 'pid name uid detail_info', {skip: (page) * num, limit: num}, function (err, doc) {
                 if (err) {
                     console.log(err);
                     return;

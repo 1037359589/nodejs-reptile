@@ -67,16 +67,16 @@ router.get('/map', function(req, res, next) {
 
 router.get("/baidu", function(req, res, next) {
     var baidu_poi = require('./baidu_poi');
-    baidu_poi(req, res, next);
+    baidu_poi.init(req, res, next);
 });
-router.get("/remove", function(req, res, next) {
-    var baidu_poi = require('../server_api/baidu_poi.api');
-    baidu_poi.removeAll();
-});
-router.get("/find", function(req, res, next) {
-    var baidu_poi = require('./baidu_poi');
-    baidu_poi.handleDetailStore(req,res,next);
-
-
-});
+//router.get("/remove", function(req, res, next) {
+//    var baidu_poi = require('../server_api/baidu_poi.api');
+//    baidu_poi.removeAll();
+//});
+//router.get("/find", function(req, res, next) {
+//    var baidu_poi = require('./baidu_poi');
+//    baidu_poi.handleDetailStore(req,res,next);
+//
+//
+//});
 module.exports = router;
