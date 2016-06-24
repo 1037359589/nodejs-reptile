@@ -34,9 +34,9 @@ var baidu_poi={
         this.model = new BaiduPoi(data||"");
         return baidu_poi;
     },
-    insert:(data,req, res, next)=>{
+    insert:(data,fn)=>{
         //baidu_poi.filterIsSetData(data,req, res, next);
-        baidu_poi.insertCanData(data,req, res, next);
+        baidu_poi.insertCanData(data,fn);
         return baidu_poi;
     },
     /*
@@ -78,13 +78,16 @@ var baidu_poi={
             }
         });
     },
-    insertCanData:function(data,req, res, next){
+    insertCanData:function(data,fn){
         BaiduPoi.create(data,function(err,doc){
             if(err){
                 console.log(err);
                 return ;
             }
             baidu_poi.insertReturnDoc=doc;
+            if(fn instanceof Function){
+                fn(doc);
+            }
             //console.log(baidu_poi.insertReturnDoc);
         });
     },
@@ -103,7 +106,7 @@ var baidu_poi={
     },
     findPoiListLimit:(num,page,fn)=>{
         BaiduPoi.count({}, function(err, count) {
-            BaiduPoi.find({}, 'pid name uid detail_info', {skip: (page) * num, limit: num}, function (err, doc) {
+            BaiduPoi.find({}, 'pid name primary_uid ext', {skip: (page) * num, limit: num}, function (err, doc) {
                 if (err) {
                     console.log(err);
                     return;
