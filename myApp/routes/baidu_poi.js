@@ -12,6 +12,9 @@ var poiObj=require("../config/POI_config");
 var tagArr=poiObj.tag.split(",");
 console.log(tagArr);
 var reptile_baidu_data={
+    /*
+    * 最终的需要爬取的URL
+    * */
     finalUrlArr:[],
     finalUrlSuccess:[],
     success:[],
@@ -44,7 +47,7 @@ var reptile_baidu_data={
                     //console.log(url);
                 })
             }
-        },1000);
+        },100);
     },
     /*
     *
@@ -148,18 +151,23 @@ var reptile_baidu_data={
     * 处理url
     * */
     handleDerailUrl:(detail_info_arr,page,num,count,req,res)=>{
-        var detail_collect=[];
+        var detail_collect=[],def=0,forSuccess=[true];
         detail_info_arr.forEach(function(uid,k){
             superagent.get('http://map.baidu.com/detail?qt=ninf&uid='+uid+'&detail=life')
                 .end(function (err, response) {
                     if (err) {
+                        //throw err;
                         reptile_baidu_data.defeated.push(page);
                         console.log(err, reptile_baidu_data.defeated,111111);
-                        reptile_baidu_data.handleDetailUrls(page);
+                        reptile_baidu_data.detailSuccess.push(true);
+                        def++;
+                        //forSuccess[k]=true;
+                        //reptile_baidu_data.handleDetailUrls(detail_info_arr,page,num,count,req,res);
                         return;
                     }
+                    //console.log("step1");
                     //console.log(response.text);
-                    //if(response.text==undefined)return;
+                    if(response.text==undefined)return;
                     var $ = cheerio.load(response.text);
                     var other={};
                     $("#detailInfo").find(".bd>dl").each(function(index,dom){
@@ -174,9 +182,13 @@ var reptile_baidu_data={
                             if (err) {
                                 reptile_baidu_data.defeated.push(page);
                                 console.log(err, reptile_baidu_data.defeated,222222);
-                                reptile_baidu_data.handleDetailUrls(page);
+                                reptile_baidu_data.detailSuccess.push(true);
+                                def++;
+                                //forSuccess[k]=true;
+                                //reptile_baidu_data.handleDetailUrls(detail_info_arr,page,num,count,req,res);
                                 return;
                             }
+                            //console.log("step2");
                             var photo="",comments="";
                             //console.log(response2.text,3);
                             try{
@@ -194,9 +206,13 @@ var reptile_baidu_data={
                                     if (err) {
                                         reptile_baidu_data.defeated.push(page);
                                         console.log(err, reptile_baidu_data.defeated,33333);
-                                        reptile_baidu_data.handleDetailUrls(page);
+                                        reptile_baidu_data.detailSuccess.push(true);
+                                        def++;
+                                        forSuccess[k]=true;
+                                        //reptile_baidu_data.handleDetailUrls(detail_info_arr,page,num,count,req,res);
                                         return;
                                     }
+                                    //console.log("step3");
                                     if(s!=undefined){
                                         try{
                                             comments=JSON.stringify(s);
@@ -212,11 +228,16 @@ var reptile_baidu_data={
                                         comments:comments
                                     };
                                     detail_collect.push(data);
+                                    console.log(detail_info_arr.length,detail_collect.length,7777);
+                                    //forSuccess[k]=true;
                                     //console.log(detail_collect.length,num,detail_collect.length,(count-parseInt(count/20)*20));
-                                    if(detail_collect.length==num||detail_collect.length==(count-parseInt(count/20)*20)){
+                                    if(detail_collect.length%10==0){
                                         console.log('开始insert');
                                         reptile_baidu_data.detailSuccess.push(true);
-                                        baidu_poi.insertCanDetailData(detail_collect);
+                                        baidu_poi.insertCanDetailData(data,function(){
+                                            console.log('插入完成!!');
+                                        });
+                                        reptile_baidu_data.defeated.remove(page);
                                         //res.send(detail_collect);
                                     }
                                 });
@@ -231,8 +252,8 @@ var reptile_baidu_data={
     handleDetailUrls:function(page){
         setTimeout(function(){
             console.log('开始失败操作');
-            reptile_baidu_data.getDetailLink(20,page);
-        },1000);
+            reptile_baidu_data.getDetailLink(100,page);
+        },100);
     },
     //开始存detail数据
     handleDetailStore:function(req,res,next){
@@ -254,16 +275,18 @@ var reptile_baidu_data={
                     var t=setInterval(function(){
                         //Math.ceil(count/20)
                         if(page==0){
-                            rbp.getDetailLink(20,page,t,count,req,res,next);
+                            rbp.getDetailLink(1000,page,t,count,req,res,next);
                             page=1;
                             console.log(page,'page');
                             return;
                         }
-                        console.log(page,reptile_baidu_data.detailSuccess[page-1],Math.ceil(count/20),888888);
+                        console.log(page,reptile_baidu_data.detailSuccess[page-1],Math.ceil(count/1000),888888);
                         if(reptile_baidu_data.detailSuccess[page-1]==true&&reptile_baidu_data.detailSuccess[page-1]!=undefined){
-                            if(page>=Math.ceil(count/20)){
+                            console.log('step0',page,Math.ceil(count/1000));
+                            if(page>=Math.ceil(count/1000)){
+
                                 /*更新成功!!*/
-                                console.log(reptile_baidu_data.detailSuccess.length,Math.ceil(count/20),999999);
+                                console.log(reptile_baidu_data.detailSuccess.length,Math.ceil(count/1000),999999);
                                 console.log('数据更新成功!!');
                                 //rbp.handleDetailUrl();
                                 res.send(rbp.defeated);
@@ -272,12 +295,12 @@ var reptile_baidu_data={
                             }
                             page++;
                             console.log(page,222);
-                            rbp.getDetailLink(20,page,t,count,req,res,next);
+                            rbp.getDetailLink(1000,page,t,count,req,res,next);
                         }
-                    },1000);
-                    clearInterval(s);
+                    },3000);
                     return;
-                })
+                });
+                clearInterval(s);
             //}
         },1000);
     },
@@ -292,4 +315,16 @@ var reptile_baidu_data={
 function final_reptile_baidu_data(req, res, next){
     reptile_baidu_data.init(req, res, next);
 }
+Array.prototype.indexOf = function(val) {
+    for (var i = 0; i < this.length; i++) {
+        if (this[i] == val) return i;
+    }
+    return -1;
+};
+Array.prototype.remove = function(val) {
+    var index = this.indexOf(val);
+    if (index > -1) {
+        this.splice(index, 1);
+    }
+};
 module.exports=reptile_baidu_data;
