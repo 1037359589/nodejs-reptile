@@ -2,6 +2,7 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="4cdcfc10-6fc9-474a-a120-ddaebd346889" name="Default" comment="">
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/myApp/routes/baidu_poi_new.js" afterPath="$PROJECT_DIR$/myApp/routes/baidu_poi_new.js" />
     </list>
     <ignored path="node-reptile.iws" />
@@ -36,8 +37,8 @@
       <file leaf-file-name="baidu_poi_new.js" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/myApp/routes/baidu_poi_new.js">
           <provider selected="true" editor-type-id="text-editor">
-            <state vertical-scroll-proportion="0.55225986">
-              <caret line="97" column="60" selection-start-line="97" selection-start-column="60" selection-end-line="97" selection-end-column="60" />
+            <state vertical-scroll-proportion="0.72540385">
+              <caret line="110" column="29" selection-start-line="110" selection-start-column="29" selection-end-line="110" selection-end-column="29" />
               <folding />
             </state>
           </provider>
@@ -533,8 +534,8 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/myApp/routes/baidu_poi_new.js">
       <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.55225986">
-          <caret line="97" column="60" selection-start-line="97" selection-start-column="60" selection-end-line="97" selection-end-column="60" />
+        <state vertical-scroll-proportion="0.72540385">
+          <caret line="110" column="29" selection-start-line="110" selection-start-column="29" selection-end-line="110" selection-end-column="29" />
           <folding />
         </state>
       </provider>

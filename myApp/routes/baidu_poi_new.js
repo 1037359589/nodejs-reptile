@@ -63,17 +63,18 @@ var reptile_baidu_data_new={
         rbdn.geoLatArr.push(la);
         rbdn.geoLngArr.push(ln);
         var t=setInterval(function(){
-            console.log(la,ln);
-            if(la>=parseFloat(rbdn.maxLat).toFixed(4)&&ln>=parseFloat(rbdn.maxLng).toFixed(4)){
+            console.log(la,ln,rbdn.geoLatArr.length,rbdn.geoLngArr.length);
+            la=(parseFloat(la)+parseFloat(0.1)).toFixed(4);
+            ln=(parseFloat(ln)+parseFloat(0.1)).toFixed(4);
+            rbdn.geoLatArr.push(la);
+            rbdn.geoLngArr.push(ln);
+            if(la>parseFloat(rbdn.maxLat).toFixed(4)&&ln>parseFloat(rbdn.maxLng).toFixed(4)){
                 rbdn.getGeo=true;
                 rbdn.getUrlFromRect(res);
+                console.log(rbdn.geoLatArr.length,rbdn.geoLngArr.length);
                 clearInterval(t);
                 return;
             }
-            la=(parseFloat(la)+parseFloat(0.005)).toFixed(4);
-            ln=(parseFloat(ln)+parseFloat(0.005)).toFixed(4);
-            rbdn.geoLatArr.push(la);
-            rbdn.geoLngArr.push(ln);
         },100);
     },
     /*
@@ -85,25 +86,44 @@ var reptile_baidu_data_new={
         console.log(rbdn.geoLatArr.length);
         console.log(rbdn.geoLngArr.length);
         rbdn.geoLatArr.forEach(function(lat,k){
-            if(k==rbdn.geoLatArr.length-1){
+            var latNext=rbdn.geoLatArr[k+1];
+                rbdn.geoLngArr.forEach(function(lng,i){
+                    if(lat!=undefined&&lng<rbdn.maxLng&&latNext!=undefined&&rbdn.geoLngArr[i+1]<rbdn.maxLng){
+                        var geo=lat+","+rbdn.geoLngArr[i]+","+latNext+","+rbdn.geoLngArr[i+1];
+                        //var rangeResObj={
+                        //    name:geo,
+                        //    value:false
+                        //};
+                        //rbdn.rangeRequest.push(rangeResObj);
+                        //console.log(rbdn.rangeRequest.length,rbdn.geoLatArr.length);
+                        for(var k in rbdn.pageNumArr){
+                            if(k>=rbdn.pageNumArr.length-2)continue;
+                            var url="http://api.map.baidu.com/place/v2/search?query="+ encodeURIComponent('中餐厅')+"&page_size=20&" +
+                                "page_num="+rbdn.pageNumArr[k]+"&scope=2&scope=2&bounds="+geo+"&output=json&ak=9L2GOOak2gq437N2jPsXUekcd0KHTK3Z";
+                            rbdn.rectUrlArr.push(url);
+                            /*
+                            * url获取已成功,明天测试url是否正常
+                            *
+                            * */
+                            if(rbdn.rangeRequest[rbdn.rangeRequest.length-1].value==true&&rbdn.geoLatArr.length==rbdn.rangeRequest.length){
+                                console.log('已经完成了该范围数据调取!!');
+                                return;
+                            }
+                            //rbdn.handleUrl2FromRect(url,geo);
+                        }
+                        console.log(k,rbdn.geoLatArr.length-1,rbdn.pageNumArr.length);
+                    }
+                });
+
+
+            if(k>=rbdn.geoLatArr.length-1){
                 rbdn.getReactUrl=true;
                 //rbdn.handleRectUrl(res);
-                //res.send(rbdn.rectUrlArr);
+                console.log(rbdn.rectUrlArr.length);
+                res.send(rbdn.rectUrlArr);
                 return;
             }
-            var geo=lat+","+rbdn.geoLngArr[k]+","+rbdn.geoLatArr[k+1]+","+rbdn.geoLngArr[k+1];
-            for(var k in rbdn.pageNumArr){
-                if(k>=rbdn.pageNumArr.length-2)return;
-                var url="http://api.map.baidu.com/place/v2/search?query="+ encodeURIComponent('中餐厅')+"&page_size=20&" +
-                    "page_num="+rbdn.pageNumArr[k]+"&scope=2&scope=2&bounds="+geo+"&output=json&ak=9L2GOOak2gq437N2jPsXUekcd0KHTK3Z";
-                //rbdn.rectUrlArr.push(url);
-                if(rbdn.rangeRequest[rbdn.rangeRequest.length-1].name==geo
-                    &&rbdn.rangeRequest[rbdn.rangeRequest.length-1].value==true&&rbdn.geoLatArr.length==rbdn.rangeRequest.length){
-                    console.log('已经完成了该范围数据调取!!');
-                    return;
-                }
-                rbdn.handleUrl2FromRect(url,geo);
-            }
+
         });
         //res.writeHead(200, {'Content-Type': 'text/html'});
 
@@ -120,6 +140,7 @@ var reptile_baidu_data_new={
             }
             superagent.get(url)
                 .end(function (err, response) {
+                    console.log(12312);
                     rbdn.urlRequest.push(true);
                     if(err){
                         console.log(err);
@@ -165,15 +186,16 @@ var reptile_baidu_data_new={
                 rbdn.urlRequest.push(true);
                 if(err){
                     console.log(err);
+                    if(rbdn.rangeRequest[rbdn.rangeRequest.length-1].name==geo){
+                        rbdn.rangeRequest[rbdn.rangeRequest.length-1].value=true;
+                    }
                     return;
                 }
                 //rbdn.urlRequest.push(true);
                 if(response.text==undefined||response.text.length==0){
-                    var rangeResObj={
-                        name:geo,
-                        value:true
-                    };
-                    rbdn.rangeRequest.push(rangeResObj);
+                    if(rbdn.rangeRequest[rbdn.rangeRequest.length-1].name==geo){
+                        rbdn.rangeRequest[rbdn.rangeRequest.length-1].value=true;
+                    }
                     console.log('return1');
                     /*
                     * 所有的矩形范围全部获取过之后进行数据库操作
@@ -188,6 +210,7 @@ var reptile_baidu_data_new={
                     return;
                 }
                 var results=JSON.parse(response.text).results;
+                console.log(results);
                 if(results.length==0){
                     console.log('return2');
                     return;
@@ -286,13 +309,13 @@ var reptile_baidu_data_new={
 function final_reptile_baidu_data(req, res, next){
     reptile_baidu_data_new.init(req, res, next);
 }
-Array.prototype.indexOf = function(val) {
+var indexOf = function(val) {
     for (var i = 0; i < this.length; i++) {
         if (this[i] == val) return i;
     }
     return -1;
 };
-Array.prototype.remove = function(val) {
+var remove = function(val) {
     var index = this.indexOf(val);
     if (index > -1) {
         this.splice(index, 1);
