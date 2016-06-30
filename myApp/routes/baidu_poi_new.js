@@ -95,7 +95,7 @@ var reptile_baidu_data_new={
             for(var k in rbdn.pageNumArr){
                 if(k>=rbdn.pageNumArr.length-2)return;
                 var url="http://api.map.baidu.com/place/v2/search?query="+ encodeURIComponent('中餐厅')+"&page_size=20&" +
-                    "page_num="+rbdn.pageNumArr[k]+"&scope=2&bounds="+geo+"&output=json&ak=9L2GOOak2gq437N2jPsXUekcd0KHTK3Z";
+                    "page_num="+rbdn.pageNumArr[k]+"&scope=2&scope=2&bounds="+geo+"&output=json&ak=9L2GOOak2gq437N2jPsXUekcd0KHTK3Z";
                 //rbdn.rectUrlArr.push(url);
                 if(rbdn.rangeRequest[rbdn.rangeRequest.length-1].name==geo
                     &&rbdn.rangeRequest[rbdn.rangeRequest.length-1].value==true&&rbdn.geoLatArr.length==rbdn.rangeRequest.length){
