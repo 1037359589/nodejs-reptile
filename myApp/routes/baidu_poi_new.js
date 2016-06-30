@@ -41,12 +41,24 @@ var reptile_baidu_data_new={
     * 所有数据
     * */
     RectAllData:[],
-    pageNumArr:[0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30],
+    getAllDataIs:false,
+    pageNumArr:[0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21],
+    /*
+    * url是否请求过
+    * */
+    urlRequest:[],
+    /*
+    * 判断该范围是否请求完,或者没数据
+    * */
+    rangeRequest:[],
     /*
     * 处理经纬度
     * */
     handleGetGeo:function(req,res,next){
         var rbdn=reptile_baidu_data_new;
+        if(rbdn.getAllDataIs==true){
+            return;
+        }
         var la=parseFloat(rbdn.minLat).toFixed(4),ln=parseFloat(rbdn.minLng).toFixed(4);
         rbdn.geoLatArr.push(la);
         rbdn.geoLngArr.push(ln);
@@ -58,8 +70,8 @@ var reptile_baidu_data_new={
                 clearInterval(t);
                 return;
             }
-            la=(parseFloat(la)+parseFloat(0.02)).toFixed(4);
-            ln=(parseFloat(ln)+parseFloat(0.02)).toFixed(4);
+            la=(parseFloat(la)+parseFloat(0.005)).toFixed(4);
+            ln=(parseFloat(ln)+parseFloat(0.005)).toFixed(4);
             rbdn.geoLatArr.push(la);
             rbdn.geoLngArr.push(ln);
         },100);
@@ -75,16 +87,22 @@ var reptile_baidu_data_new={
         rbdn.geoLatArr.forEach(function(lat,k){
             if(k==rbdn.geoLatArr.length-1){
                 rbdn.getReactUrl=true;
-                rbdn.handleRectUrl(res);
+                //rbdn.handleRectUrl(res);
                 //res.send(rbdn.rectUrlArr);
                 return;
             }
             var geo=lat+","+rbdn.geoLngArr[k]+","+rbdn.geoLatArr[k+1]+","+rbdn.geoLngArr[k+1];
             for(var k in rbdn.pageNumArr){
-                if(k>=30)return;
-                var url="http://api.map.baidu.com/place/v2/search?query="+ encodeURIComponent('美食')+"&page_size=20&" +
+                if(k>=rbdn.pageNumArr.length-2)return;
+                var url="http://api.map.baidu.com/place/v2/search?query="+ encodeURIComponent('中餐厅')+"&page_size=20&" +
                     "page_num="+rbdn.pageNumArr[k]+"&scope=2&bounds="+geo+"&output=json&ak=9L2GOOak2gq437N2jPsXUekcd0KHTK3Z";
-                rbdn.rectUrlArr.push(url);
+                //rbdn.rectUrlArr.push(url);
+                if(rbdn.rangeRequest[rbdn.rangeRequest.length-1].name==geo
+                    &&rbdn.rangeRequest[rbdn.rangeRequest.length-1].value==true&&rbdn.geoLatArr.length==rbdn.rangeRequest.length){
+                    console.log('已经完成了该范围数据调取!!');
+                    return;
+                }
+                rbdn.handleUrl2FromRect(url,geo);
             }
         });
         //res.writeHead(200, {'Content-Type': 'text/html'});
@@ -95,37 +113,101 @@ var reptile_baidu_data_new={
     * */
     handleRectUrl:(res)=>{
         var rbdn=reptile_baidu_data_new;
-        //superagent.get("http://api.map.baidu.com/place/v2/search?query="+ encodeURIComponent('美食')+"&page_size=20&" +
-        //        "page_num=0&scope=2&bounds=31.1737,121.3340,31.2037,121.3640&output=json&ak=9L2GOOak2gq437N2jPsXUekcd0KHTK3Z")
-        //    .end(function (err, response) {
-        //        if(err){
-        //            console.log(err);
-        //        }
-        //      res.send(response.text);
-        //    });
         rbdn.rectUrlArr.forEach(function(url,k){
+            if(rbdn.rangeRequest[k]==true){
+                console.log('该范围的数据已经请求完了!!');
+                return;
+            }
             superagent.get(url)
                 .end(function (err, response) {
+                    rbdn.urlRequest.push(true);
                     if(err){
                         console.log(err);
                         return;
                     }
-                    if(response.text==undefined||response.text.length==0){return;}
+                    //rbdn.urlRequest.push(true);
+                    if(response.text==undefined||response.text.length==0){
+                        rbdn.rangeRequest[k]=true;
+                        console.log('return1');
+                        return;
+                    }
                     var results=JSON.parse(response.text).results;
+                    if(results.length==0){
+                        console.log('return2');
+                        return;
+                    }
                     results.forEach(function(v,k){
                         rbdn.RectAllData.push(v);
                     });
-                    console.log(rbdn.RectAllData.length);
-                    if(k>=rbdn.rectUrlArr.length-1){
-                        setTimeout(function(){
-                            res.send(rbdn.RectAllData);
-                        },2000);
 
+                    console.log(rbdn.RectAllData.length,rbdn.urlRequest.length,rbdn.rectUrlArr.length);
+                    if(rbdn.urlRequest.length>=rbdn.rectUrlArr.length){
+                        //setTimeout(function(){
+                            rbdn.getAllDataIs=true;
+                            res.send(rbdn.RectAllData);
+                        //},2000);
                         return;
                     }
+                    //if(k>=rbdn.rectUrlArr.length-1){
+                    //
+                    //}
                 });
 
         });
+    },
+    /*
+    * 处理rect的url(新)
+    * */
+    handleUrl2FromRect:function(url,geo){
+        var rbdn=reptile_baidu_data_new;
+        superagent.get(url)
+            .end(function (err, response) {
+                rbdn.urlRequest.push(true);
+                if(err){
+                    console.log(err);
+                    return;
+                }
+                //rbdn.urlRequest.push(true);
+                if(response.text==undefined||response.text.length==0){
+                    var rangeResObj={
+                        name:geo,
+                        value:true
+                    };
+                    rbdn.rangeRequest.push(rangeResObj);
+                    console.log('return1');
+                    /*
+                    * 所有的矩形范围全部获取过之后进行数据库操作
+                    * */
+                    if(rbdn.rangeRequest.length == rbdn.geoLatArr.length){
+                        res.send(rbdn.RectAllData);
+                        /*
+                        * TODO::数据插入到数据库
+                        * */
+                        return;
+                    }
+                    return;
+                }
+                var results=JSON.parse(response.text).results;
+                if(results.length==0){
+                    console.log('return2');
+                    return;
+                }
+                results.forEach(function(v,k){
+                    rbdn.RectAllData.push(v);
+                });
+
+                //console.log(rbdn.RectAllData.length,rbdn.urlRequest.length,rbdn.rectUrlArr.length);
+                //if(rbdn.urlRequest.length>=rbdn.rectUrlArr.length){
+                //    //setTimeout(function(){
+                //    rbdn.getAllDataIs=true;
+                //    res.send(rbdn.RectAllData);
+                //    //},2000);
+                //    return;
+                //}
+                //if(k>=rbdn.rectUrlArr.length-1){
+                //
+                //}
+            });
     },
     /*
      * 开始处理URl
