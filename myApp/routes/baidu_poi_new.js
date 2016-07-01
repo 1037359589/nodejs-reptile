@@ -71,8 +71,8 @@ var reptile_baidu_data_new={
         rbdn.geoLngArr.push(ln);
         var t=setInterval(function(){
             console.log(la,ln,rbdn.geoLatArr.length,rbdn.geoLngArr.length);
-            la=(parseFloat(la)+parseFloat(0.3)).toFixed(4);
-            ln=(parseFloat(ln)+parseFloat(0.3)).toFixed(4);
+            la=(parseFloat(la)+parseFloat(0.1)).toFixed(4);
+            ln=(parseFloat(ln)+parseFloat(0.1)).toFixed(4);
             rbdn.geoLatArr.push(la);
             rbdn.geoLngArr.push(ln);
             if(la>parseFloat(rbdn.maxLat).toFixed(4)&&ln>parseFloat(rbdn.maxLng).toFixed(4)){
@@ -100,7 +100,7 @@ var reptile_baidu_data_new={
                 if(latNext!=undefined&&rbdn.geoLngArr[i+1]!=undefined){
                     var geo=lat+","+rbdn.geoLngArr[i]+","+latNext+","+rbdn.geoLngArr[i+1];
                     rbdn.geoArr.push(geo);
-                    console.log(rbdn.rangeRequest.length,'撒打算打算的');
+                    //console.log(rbdn.rangeRequest.length,'撒打算打算的');
                     var rg={
                         geo:geo,
                         value:false,
@@ -114,7 +114,7 @@ var reptile_baidu_data_new={
                             rbdn.rangeRequest.push(rg);
                         }
                         //rbdn.handleUrl2FromRect(url,geo,res);
-                        console.log(rbdn.rangeRequest.length,(rbdn.geoLatArr.length-1)*(rbdn.geoLngArr.length-1),"qweqwe");
+                        //console.log(rbdn.rangeRequest.length,(rbdn.geoLatArr.length-1)*(rbdn.geoLngArr.length-1),"qweqwe");
 
                     }
                     if(rbdn.rangeRequest.length==(rbdn.geoLatArr.length-1)*(rbdn.geoLngArr.length-1)){
@@ -125,7 +125,7 @@ var reptile_baidu_data_new={
                         return;
                     }
 
-                    console.log(rbdn.geoArr,rbdn.geoArr.length, rbdn.rectUrlArr.length);
+                    //console.log(rbdn.geoArr,rbdn.geoArr.length, rbdn.rectUrlArr.length);
                 }
 
             });
@@ -138,11 +138,11 @@ var reptile_baidu_data_new={
     * */
     handleRectUrl:(res)=>{
         var rbdn=reptile_baidu_data_new;
-           //res.send(rbdn.rangeRequest) ;
+           res.send(rbdn.rangeRequest) ;
         rbdn.rangeRequest.forEach(function(reqObj,k){
             var reqSuccess=[];
             reqObj.urlArr.forEach(function(url,i){
-                rbdn.superagentUrl(url,reqObj,i,res);
+                //rbdn.superagentUrl(url,reqObj,i,res);
             });
         });
     },
