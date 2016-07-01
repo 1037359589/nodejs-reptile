@@ -17,7 +17,7 @@ var baiduPoiNewSchema=new mongoose.Schema({
         index:true
     },
     location:{
-        type:String
+        type:Object
     },
     address:{
         type:String,
@@ -29,15 +29,14 @@ var baiduPoiNewSchema=new mongoose.Schema({
     },
     detail:{
         type:Number,
-        index:true,
-        default:"-"
+        index:true
     },
     uid:{
         type:String,
         index:true
     },
     detail_info:{
-        type:String,
+        type:Object,
         index:true,
         default:"-"
     }
@@ -55,4 +54,4 @@ baiduPoiNewSchema.plugin(autoIncrement.plugin, {
     startAt: 0,    //开始位置，自定义
     incrementBy: 1    //每次自增数量
 });
-var baiduPoi=mongoose.model('Baidu_poi_new',baiduPoiNewSchema);
+var baiduPoiNew=mongoose.model('Baidu_poi_new',baiduPoiNewSchema);
