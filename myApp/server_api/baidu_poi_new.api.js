@@ -6,7 +6,7 @@
  */
 var mongoose=require("mongoose");
 var BaiduPoiNew=mongoose.model("Baidu_poi_new");
-var BaiduPoiDetail=mongoose.model("Baidu_poi_detail");
+var BaiduPoiDetailNew=mongoose.model("Baidu_poi_detail_new");
 
 var baidu_poi_new={
     insertData:function(data,fn){
@@ -21,6 +21,18 @@ var baidu_poi_new={
             }
         });
     },
+    insertDetailData:(data,fn)=>{
+        BaiduPoiDetailNew.create(data,function(err,doc){
+            if(err){
+                console.log(err);
+                return ;
+            }
+            console.log('inserted');
+            if(fn instanceof Function){
+                fn(doc);
+            }
+        });
+    }
 };
 //Array.prototype.indexOf = function(val) {
 //    for (var i = 0; i < this.length; i++) {
