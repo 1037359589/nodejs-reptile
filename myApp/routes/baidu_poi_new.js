@@ -63,10 +63,15 @@ var reptile_baidu_data_new={
     detailUids:[],
     detailAllData:[],
     /*
+    * 判断最终是否完成
+    * */
+    dataUpdateAll:false,
+    /*
     * 处理经纬度
     * */
     handleGetGeo:function(req,res,next){
         var rbdn=reptile_baidu_data_new;
+        if(rbdn.dataUpdateAll)return;
         rbdn.rectUrlArr=[];
         rbdn.geoLatArr=[];
         rbdn.geoLngArr=[];
@@ -191,21 +196,22 @@ var reptile_baidu_data_new={
                 var results=JSON.parse(response.text).results;
                 if(results.length==0){
                     console.log('return2');
-                    rbdn.updatePoiList();
+                    rbdn.updatePoiList(res);
                     return;
                 }
                 results.forEach(function(v,k){
+                    v.detail_info=JSON.stringify(v.detail_info);
                     rbdn.RectAllData.push(v);
                 });
-                rbdn.updatePoiList();
+                rbdn.updatePoiList(res);
             });
     },
     /*
     * 获取成功，更新数据
     * */
-    updatePoiList:()=>{
+    updatePoiList:(res)=>{
         var rbdn=reptile_baidu_data_new;
-        console.log(rbdn.RectAllData.length,rbdn.allGetNum,rbdn.rangeRequest.length*rbdn.pageNumArr.length,"kkkk",page);
+        console.log(rbdn.RectAllData.length,rbdn.allGetNum,rbdn.rangeRequest.length*rbdn.pageNumArr.length,"kkkk");
         if(rbdn.allGetNum==rbdn.rangeRequest.length*rbdn.pageNumArr.length){
             console.log('获取数据成功，正在更新数据库......');
             baidu_poi_new.insertData( rbdn.RectAllData,function(){
@@ -235,14 +241,14 @@ var reptile_baidu_data_new={
 
         rbdn.detailUrls.forEach((url,i)=>{
             console.log('获取次数：'+i);
-            rbdn.superagentdetailUrl(url);
+            rbdn.superagentdetailUrl(url,res);
         });
         // rbdn.superagentdetailUrl();
     },
     /*
     * 处理url获取数据
     * */
-    superagentdetailUrl:(url)=>{
+    superagentdetailUrl:(url,res)=>{
         var rbdn=reptile_baidu_data_new;
         // if(rbdn.allGet==true)return;
         superagent.get(url)
@@ -250,7 +256,7 @@ var reptile_baidu_data_new={
                 rbdn.urlRequest.push(true);
                 if(err){
                     console.log(err);
-                    rbdn.superagentdetailUrl(url);
+                    rbdn.superagentdetailUrl(url,res);
                     return;
                 }
                 //rbdn.urlRequest.push(true);
@@ -269,14 +275,14 @@ var reptile_baidu_data_new={
                 var result=JSON.parse(response.text).result;
                 if(result.length==0){
                     console.log('return2');
-                    rbdn.updatePoiDetail();
+                    rbdn.updatePoiDetail(res);
                     return;
                 }
                 rbdn.detailAllData.push(result);
-                rbdn.updatePoiDetail();
+                rbdn.updatePoiDetail(res);
             });
     },
-    updatePoiDetail:()=>{
+    updatePoiDetail:(res)=>{
         var rbdn=reptile_baidu_data_new;
         console.log(rbdn.detailAllData.length,rbdn.allDetailNum,rbdn.detailUrls.length,"yyyy");
         if(rbdn.allDetailNum==rbdn.detailUrls.length){
@@ -285,7 +291,9 @@ var reptile_baidu_data_new={
                 //console.log(allSuccess.length,rbdn.rangeRequest.length,allSuccess,"opoppoopo");
                 console.log('数据详情更新完毕......');
                 console.log('全部更新完成......');
+                rbdn.dataUpdateAll=true;
             });
+            return;
         }
     },
     /*
@@ -363,6 +371,7 @@ var reptile_baidu_data_new={
         //reptile_baidu_data_new.handleDetailStore(req,res,next);
 
         reptile_baidu_data_new.handleGetGeo(req,res,next);
+        // reptile_baidu_data_new.superagentdetailUrl("http://api.map.baidu.com/place/v2/detail?uid=552cdb90fe9776694afd3f81&output=json&scope=2&ak=9L2GOOak2gq437N2jPsXUekcd0KHTK3Z");
     }
 };
 // function final_reptile_baidu_data(req, res, next){

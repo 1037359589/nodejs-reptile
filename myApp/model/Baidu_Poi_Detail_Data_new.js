@@ -16,11 +16,13 @@ var baiduPoiDetailNewSchema=new mongoose.Schema({
         type:Object
     },
     address:{
-        type:String
+        type:String,
+        index:true
     },
     telephone:{
         type:String,
-        index:true
+        index:true,
+        default:"-"
     },
     detail:{
         type:Number
