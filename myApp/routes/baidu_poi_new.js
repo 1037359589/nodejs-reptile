@@ -286,14 +286,17 @@ var reptile_baidu_data_new={
         var rbdn=reptile_baidu_data_new;
         console.log(rbdn.detailAllData.length,rbdn.allDetailNum,rbdn.detailUrls.length,"yyyy");
         if(rbdn.allDetailNum==rbdn.detailUrls.length){
-            console.log('获取详情数据成功，正在更新数据库......');
-            baidu_poi_new.insertDetailData( rbdn.detailAllData,function(){
-                //console.log(allSuccess.length,rbdn.rangeRequest.length,allSuccess,"opoppoopo");
-                console.log('数据详情更新完毕......');
-                console.log('全部更新完成......');
-                rbdn.dataUpdateAll=true;
-            });
-            return;
+            // if(rbdn.allDetailNum%100==0){
+                console.log('获取详情数据成功，正在更新数据库......');
+                baidu_poi_new.insertDetailData( rbdn.detailAllData,function(){
+                    //console.log(allSuccess.length,rbdn.rangeRequest.length,allSuccess,"opoppoopo");
+                    console.log('数据详情更新完毕......');
+                    console.log('全部更新完成......');
+                    rbdn.dataUpdateAll=true;
+                });
+                return;
+            // }
+
         }
     },
     /*
