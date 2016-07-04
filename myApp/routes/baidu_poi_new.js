@@ -51,19 +51,36 @@ var reptile_baidu_data_new={
     * 判断该范围是否请求完,或者没数据
     * */
     rangeRequest:[],
-    geoArr:[],
-    allGet:false,
+    geoArr:[],//暂无用处
+    allGet:false, //请求成功判断，暂无用处
+    /*每访问一次，加1，判断url是否已全部请求*/
+    allGetNum:0,
+    allDetailNum:0,
+    /*
+    * 所有的detail链接,uid,所有的detail数据
+    * */
+    detailUrls:[],
+    detailUids:[],
+    detailAllData:[],
+    /*
+    * 判断最终是否完成
+    * */
+    dataUpdateAll:false,
     /*
     * 处理经纬度
     * */
     handleGetGeo:function(req,res,next){
         var rbdn=reptile_baidu_data_new;
+        if(rbdn.dataUpdateAll)return;
         rbdn.rectUrlArr=[];
         rbdn.geoLatArr=[];
         rbdn.geoLngArr=[];
+        rbdn.geoArr=[];
         rbdn.RectAllData=[];
         rbdn.urlRequest=[];
         rbdn.rangeRequest=[];
+        rbdn.allGetNum=0;
+        rbdn.allDetailNum=0;
         if(rbdn.getAllDataIs==true){
             return;
         }
@@ -94,45 +111,45 @@ var reptile_baidu_data_new={
         var rbdn=reptile_baidu_data_new;
         console.log(rbdn.geoLatArr.length);
         console.log(rbdn.geoLngArr.length);
-        rbdn.geoArr=[];rbdn.rectUrlArr=[];rbdn.rangeRequest=[];
-        rbdn.geoLatArr.forEach(function(lat,k){
-            var latNext=rbdn.geoLatArr[k+1];
-            rbdn.geoLngArr.forEach(function(lng,i){
-                if(latNext!=undefined&&rbdn.geoLngArr[i+1]!=undefined){
-                    var geo=lat+","+rbdn.geoLngArr[i]+","+latNext+","+rbdn.geoLngArr[i+1];
-                    rbdn.geoArr.push(geo);
-                    //console.log(rbdn.rangeRequest.length,'撒打算打算的');
-                    var rg={
-                        geo:geo,
-                        value:false,
-                        urlArr:[]
-                    };
-                    for(var k in rbdn.pageNumArr){
-                        var url="http://api.map.baidu.com/place/v2/search?query="+ encodeURIComponent('美食')+"&page_size=20&" +
-                            "page_num="+rbdn.pageNumArr[k]+"&scope=2&scope=2&bounds="+geo+"&output=json&ak=9L2GOOak2gq437N2jPsXUekcd0KHTK3Z";
-                        rg.urlArr.push(url);
-                        if(k == rbdn.pageNumArr.length-1){
-                            rbdn.rangeRequest.push(rg);
+        // rbdn.geoArr=[];rbdn.rectUrlArr=[];rbdn.rangeRequest=[];
+        tagArr.forEach(function(tag,k){
+            rbdn.geoLatArr.forEach(function(lat,k){
+                var latNext=rbdn.geoLatArr[k+1];
+                rbdn.geoLngArr.forEach(function(lng,i){
+                    if(latNext!=undefined&&rbdn.geoLngArr[i+1]!=undefined){
+                        var geo=lat+","+rbdn.geoLngArr[i]+","+latNext+","+rbdn.geoLngArr[i+1];
+                        rbdn.geoArr.push(geo);
+                        //console.log(rbdn.rangeRequest.length,'撒打算打算的');
+                        var rg={
+                            geo:geo,
+                            value:false,
+                            urlArr:[]
+                        };
+                        for(var k in rbdn.pageNumArr){
+                            var url="http://api.map.baidu.com/place/v2/search?query="+ encodeURIComponent(tag)+"&page_size=20&" +
+                                "page_num="+rbdn.pageNumArr[k]+"&scope=2&scope=2&bounds="+geo+"&output=json&ak=9L2GOOak2gq437N2jPsXUekcd0KHTK3Z";
+                            rg.urlArr.push(url);
+                            if(k == rbdn.pageNumArr.length-1){
+                                rbdn.rangeRequest.push(rg);
+                            }
+                            //rbdn.handleUrl2FromRect(url,geo,res);
+                            //console.log(rbdn.rangeRequest.length,(rbdn.geoLatArr.length-1)*(rbdn.geoLngArr.length-1),"qweqwe");
+
                         }
-                        //rbdn.handleUrl2FromRect(url,geo,res);
-                        //console.log(rbdn.rangeRequest.length,(rbdn.geoLatArr.length-1)*(rbdn.geoLngArr.length-1),"qweqwe");
-
-                    }
-                    if(rbdn.rangeRequest.length==(rbdn.geoLatArr.length-1)*(rbdn.geoLngArr.length-1)){
-                        rbdn.getReactUrl=true;
-                        console.log(rbdn.rangeRequest.length,'ooooo');
-                        rbdn.handleRectUrl(res);
-                        //res.send(rbdn.rangeRequest);
-                        return;
+                        if(rbdn.rangeRequest.length==(rbdn.geoLatArr.length-1)*(rbdn.geoLngArr.length-1)*tagArr.length){
+                            rbdn.getReactUrl=true;
+                            console.log(rbdn.rangeRequest.length,'ooooo');
+                            rbdn.handleRectUrl(res);
+                            //res.send(rbdn.rangeRequest);
+                            return;
+                        }
+                        //console.log(rbdn.geoArr,rbdn.geoArr.length, rbdn.rectUrlArr.length);
                     }
 
-                    //console.log(rbdn.geoArr,rbdn.geoArr.length, rbdn.rectUrlArr.length);
-                }
-
+                });
             });
         });
         //res.writeHead(200, {'Content-Type': 'text/html'});
-
     },
     /*
     * 处理url,得到数据
@@ -140,17 +157,22 @@ var reptile_baidu_data_new={
     handleRectUrl:(res)=>{
         var rbdn=reptile_baidu_data_new;
         rbdn.allGet=false;
-           //res.send(rbdn.rangeRequest) ;
+        console.log(rbdn.rangeRequest.length);
+           // res.send(rbdn.rangeRequest) ;
         rbdn.rangeRequest.forEach(function(reqObj,k){
             var reqSuccess=[];
-            reqObj.urlArr.forEach(function(url,i){
-                rbdn.superagentUrl(url,reqObj,i,res);
-            });
+            // reqObj.urlArr.forEach(function(url,i){
+            //     console.log(reqObj.urlArr);
+            //     // rbdn.superagentUrl(url,reqObj,i,res);
+            // });
+            for(var i in reqObj.urlArr){
+                rbdn.superagentUrl(reqObj.urlArr[i],reqObj,i,res);
+            }
         });
     },
     superagentUrl:(url,obj,page,res)=>{
         var rbdn=reptile_baidu_data_new;
-        if(rbdn.allGet==true)return;
+        // if(rbdn.allGet==true)return;
         superagent.get(url)
             .end(function (err, response) {
                 rbdn.urlRequest.push(true);
@@ -160,47 +182,126 @@ var reptile_baidu_data_new={
                     return;
                 }
                 //rbdn.urlRequest.push(true);
-                if(obj.value==true){
-                    return;
-                }
+                // if(obj.value==true){
+                //     return;
+                // }
+                rbdn.allGetNum++;
                 if(response.text==undefined||response.text.length==0){
-                    obj.value=true;
+                    // obj.value=true;
                     console.log('return1');
                     return;
                 }
+                // console.log(url);
+                // console.log(JSON.parse(response.text));
                 var results=JSON.parse(response.text).results;
                 if(results.length==0){
-                    obj.value=true;
-                    /*开始判断是否全部成功!!*/
-                    var allSuccess=[];
-                    for(var i in rbdn.rangeRequest){
-                        allSuccess.push(rbdn.rangeRequest[i].value);
-                    }
-                    /*
-                     * 判断是否已经全部执行完成
-                     * */
-                    //console.log(allSuccess,allSuccess.length,rbdn.rangeRequest.length,929292);
-                    if(allSuccess.length==rbdn.rangeRequest.length&&allSuccess.indexOf(false)==-1){
-                        rbdn.allGet=true;
-                        console.log('全部成功!!');
-                        baidu_poi_new.insertData( rbdn.RectAllData,function(){
-                                //console.log(allSuccess.length,rbdn.rangeRequest.length,allSuccess,"opoppoopo");
-                            console.log('insert完毕!!');
-                        });
-                        return;
-                    }
                     console.log('return2');
+                    rbdn.updatePoiList(res);
                     return;
                 }
                 results.forEach(function(v,k){
+                    v.detail_info=JSON.stringify(v.detail_info);
                     rbdn.RectAllData.push(v);
                 });
-                console.log(rbdn.RectAllData.length);
+                rbdn.updatePoiList(res);
             });
-    //    逻辑是对的.
     },
     /*
-    * 处理rect的url(新)
+    * 获取成功，更新数据
+    * */
+    updatePoiList:(res)=>{
+        var rbdn=reptile_baidu_data_new;
+        console.log(rbdn.RectAllData.length,rbdn.allGetNum,rbdn.rangeRequest.length*rbdn.pageNumArr.length,"kkkk");
+        if(rbdn.allGetNum==rbdn.rangeRequest.length*rbdn.pageNumArr.length){
+            console.log('获取数据成功，正在更新数据库......');
+            baidu_poi_new.insertData( rbdn.RectAllData,function(){
+                //console.log(allSuccess.length,rbdn.rangeRequest.length,allSuccess,"opoppoopo");
+                console.log('数据库更新完毕,开始进行数据详情更新.....');
+                rbdn.getDetailUrl(res);
+            });
+        }
+    },
+    /*
+    * TODO::数据的详情处理
+    * 获取数据的detail的url
+    * */
+    getDetailUrl:(res)=>{
+        var rbdn=reptile_baidu_data_new;
+        rbdn.detailUids=[];rbdn.detailUrls=[];
+        rbdn.RectAllData.forEach((rd,k)=>{
+            rbdn.detailUids.push(rd.uid);
+        });
+        rbdn.detailUids.forEach((uid,k)=>{
+            var url='http://api.map.baidu.com/place/v2/detail?uid='+uid+
+                '&output=json&scope=2&ak=9L2GOOak2gq437N2jPsXUekcd0KHTK3Z';
+            rbdn.detailUrls.push(url);
+        });
+        console.log(rbdn.detailUrls.length);
+        // res.send(rbdn.detailUrls);
+
+        rbdn.detailUrls.forEach((url,i)=>{
+            console.log('获取次数：'+i);
+            rbdn.superagentdetailUrl(url,res);
+        });
+        // rbdn.superagentdetailUrl();
+    },
+    /*
+    * 处理url获取数据
+    * */
+    superagentdetailUrl:(url,res)=>{
+        var rbdn=reptile_baidu_data_new;
+        // if(rbdn.allGet==true)return;
+        superagent.get(url)
+            .end(function (err, response) {
+                rbdn.urlRequest.push(true);
+                if(err){
+                    console.log(err);
+                    rbdn.superagentdetailUrl(url,res);
+                    return;
+                }
+                //rbdn.urlRequest.push(true);
+                // if(obj.value==true){
+                //     return;
+                // }
+                rbdn.allDetailNum++;
+                console.log("开始获取数据......,"+rbdn.allDetailNum+"次");
+                if(response.text==undefined||response.text.length==0){
+                    // obj.value=true;
+                    console.log('return1');
+                    return;
+                }
+                // console.log(url);
+                // console.log(JSON.parse(response.text));
+                var result=JSON.parse(response.text).result;
+                if(result.length==0){
+                    console.log('return2');
+                    rbdn.updatePoiDetail(res);
+                    return;
+                }
+                rbdn.detailAllData.push(result);
+                rbdn.updatePoiDetail(res);
+            });
+    },
+    updatePoiDetail:(res)=>{
+        var rbdn=reptile_baidu_data_new;
+        console.log(rbdn.detailAllData.length,rbdn.allDetailNum,rbdn.detailUrls.length,"yyyy");
+        if(rbdn.allDetailNum==rbdn.detailUrls.length){
+            // if(rbdn.allDetailNum%100==0){
+                console.log('获取详情数据成功，正在更新数据库......');
+                baidu_poi_new.insertDetailData( rbdn.detailAllData,function(){
+                    //console.log(allSuccess.length,rbdn.rangeRequest.length,allSuccess,"opoppoopo");
+                    console.log('数据详情更新完毕......');
+                    console.log('全部更新完成......');
+                    rbdn.dataUpdateAll=true;
+                });
+                return;
+            // }
+
+        }
+    },
+    /*
+    * 处理rect的url(新)(废除)
+    *
     * */
     handleUrl2FromRect:function(url,geo,res){
         var rbdn=reptile_baidu_data_new;
@@ -264,93 +365,31 @@ var reptile_baidu_data_new={
                 //}
             });
     },
-    /*
-     * 开始处理URl
-     * */
-    handleGetUrlArr:function(req, res, next){
-        var rbd=reptile_baidu_data_new;
-        var t=setInterval(function(){
-            //console.log(tagArr.length*100,rbd.finalUrlArr.length);
-            if(tagArr.length*100==rbd.finalUrlArr.length){
-                clearInterval(t);
-                console.log('开始处理数据!!');
-                rbd.finalUrlArr.forEach(function(url,k){
-                    if(rbd.finalUrlSuccess[k-1]==true&&k!=0){
-                        rbd.handleData(url,k,req, res, next);
-                        return;
-                    }
-                    rbd.handleData(url,k,req, res, next);
-                    //console.log(url);
-                })
-            }
-        },100);
-    },
-    /*
-     *
-     * 处理数据
-     * */
-    handleData:(mapUrl,k,req, res, next)=>{
-        var rbd=reptile_baidu_data_new;
-        superagent.get(mapUrl)
-            .end(function (err, response) {
-                if (err) {
-                    console.log(err);
-                    rbd.handleData(mapUrl,k,req, res, next);
-                    return;
-                }
-                if(response.text==undefined){
-                    return;
-                }
-                //var s={};
-                //s.content=JSON.parse(response.text.split(',\"content\":')[1]);
-                try{
-                    var s = JSON.parse(response.text);
-                }catch(err){
-                    console.log('无法解决的错误!!');
-                    return;
-                }
-                console.log(s);
-                var results = s.content, dataAll = [];
-                if(results==undefined||results.length==0){
-                    console.log('无数据');
-                    return;
-                }
-                for(var k in results){
-                    console.log(results[k]);
-                    for(var i in results[k]){
-                        if(results[k][i] instanceof Object){
-                            results[k][i]= JSON.stringify(results[k][i]);
-                        }
-                    }
-                    dataAll.push(results[k]);
-                }
-                console.log(dataAll,dataAll.length);
-                baidu_poi.insert(dataAll,req, res, next);
-                rbd.finalUrlSuccess[k]=true;
-            });
-    },
     init:(req, res, next)=>{
         //baidu_poi.removeAll();
         //baidu_poi.detailRemoveAll();
         //reptile_baidu_data_new.pageHandle(req, res, next);
         //reptile_baidu_data_new.handleGetUrlArr();
-        reptile_baidu_data_new.handleGetGeo(req,res,next);
+
         //reptile_baidu_data_new.handleDetailStore(req,res,next);
+
+        reptile_baidu_data_new.handleGetGeo(req,res,next);
+        // reptile_baidu_data_new.superagentdetailUrl("http://api.map.baidu.com/place/v2/detail?uid=552cdb90fe9776694afd3f81&output=json&scope=2&ak=9L2GOOak2gq437N2jPsXUekcd0KHTK3Z");
     }
 };
-function final_reptile_baidu_data(req, res, next){
-    reptile_baidu_data_new.init(req, res, next);
-}
-var indexOf = function(val) {
-    for (var i = 0; i < this.length; i++) {
-        if (this[i] == val) return i;
-    }
-    return -1;
-};
-var remove = function(val) {
-    var index = this.indexOf(val);
-    if (index > -1) {
-        this.splice(index, 1);
-    }
-};
+// function final_reptile_baidu_data(req, res, next){
+//     reptile_baidu_data_new.init(req, res, next);
+// }
+// var indexOf = function(val) {
+//     for (var i = 0; i < this.length; i++) {
+//         if (this[i] == val) return i;
+//     }
+//     return -1;
+// };
+// var remove = function(val) {
+//     var index = this.indexOf(val);
+//     if (index > -1) {
+//         this.splice(index, 1);
+//     }
+// };
 module.exports=reptile_baidu_data_new;

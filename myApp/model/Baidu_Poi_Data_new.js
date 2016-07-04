@@ -25,7 +25,7 @@ var baiduPoiNewSchema=new mongoose.Schema({
     },
     street_id:{
         type:String,
-        index:true,
+        index:true
     },
     detail:{
         type:Number,
@@ -36,9 +36,7 @@ var baiduPoiNewSchema=new mongoose.Schema({
         index:true
     },
     detail_info:{
-        type:Object,
-        index:true,
-        default:"-"
+        type:String,
     }
 });
 baiduPoiNewSchema.post('save',function(next){

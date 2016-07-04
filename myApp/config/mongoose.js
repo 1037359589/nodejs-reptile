@@ -8,5 +8,6 @@ module.exports=function(){
     require("../model/Baidu_Poi_Data.js");
     require("../model/Baidu_Poi_Data_new.js");
     require("../model/Baidu_Poi_Detail_Data.js");
+    require("../model/Baidu_Poi_Detail_Data_new.js");
     return db;
 };

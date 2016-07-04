@@ -1,28 +1,44 @@
 /**
+ * Created by Administrator on 2016/7/2 0002.
+ */
+/**
  * Created by pzl on 16/6/22.
  */
 var mongoose=require("mongoose");
 var autoIncrement = require('mongoose-auto-increment');   //自增ID 模块
 autoIncrement.initialize(mongoose.connection);
-var baiduPoiDetailSchema=new mongoose.Schema({
-    uid:{
+var baiduPoiDetailNewSchema=new mongoose.Schema({
+    name:{
         type:String,
         index:true,
     },
-    other_msg:{
-      type:String
+    location:{
+        type:Object
     },
-    photo:{
-        type:String
+    address:{
+        type:String,
+        index:true
     },
-    comments:{
-        type:String
+    telephone:{
+        type:String,
+        index:true,
+        default:"-"
+    },
+    detail:{
+        type:Number
+    },
+    uid:{
+        type:String,
+        index:true
+    },
+    detail_info:{
+        type:Object
     }
 });
-baiduPoiDetailSchema.post('save',function(next){
+baiduPoiDetailNewSchema.post('save',function(next){
     //console.log('已经执行了save操作!!');
 });
-baiduPoiDetailSchema.pre('save',function(next){
+baiduPoiDetailNewSchema.pre('save',function(next){
     //console.log('即将执行save操作!!');
     next();
 });
@@ -32,4 +48,4 @@ baiduPoiDetailSchema.pre('save',function(next){
 //    startAt: 0,    //开始位置，自定义
 //    incrementBy: 1    //每次自增数量
 //});
-var baiduPoi=mongoose.model('Baidu_poi_detail',baiduPoiDetailSchema);
+var baiduPoi=mongoose.model('Baidu_poi_detail_new',baiduPoiDetailNewSchema);
