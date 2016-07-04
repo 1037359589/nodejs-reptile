@@ -7,9 +7,10 @@ var bodyParser = require('body-parser');
 var mongoose=require("./config/mongoose.js");
 var routes = require('./routes/index');
 var users = require('./routes/users');
-var test = require('./routes/test');
+
 var app = express();
 var db=mongoose();
+var test = require('./routes/test');
 //console.log(db.connections[0].models.IdentityCounter.db);
 //执行接口
 // var baidu_poi = require('./routes/baidu_poi');

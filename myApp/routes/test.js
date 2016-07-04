@@ -161,10 +161,10 @@ router.get("/baidu", function(req, res, next) {
     var baidu_poi = require('./baidu_poi');
     baidu_poi.init(req, res, next);
 });
-router.get("/baidu_new", function(req, res, next) {
+//router.get("/baidu_new", function(req, res, next) {
     var baidu_poi = require('./baidu_poi_new');
-    baidu_poi.init(req, res, next);
-});
+    baidu_poi.init();
+//});
 //router.get("/remove", function(req, res, next) {
 //    var baidu_poi = require('../server_api/baidu_poi.api');
 //    baidu_poi.removeAll();
