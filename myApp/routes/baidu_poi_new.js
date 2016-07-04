@@ -296,7 +296,6 @@ var reptile_baidu_data_new={
                 });
                 return;
             // }
-
         }
     },
     /*
